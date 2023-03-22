@@ -25,17 +25,19 @@ app.get('/', (request, response) => {
 
 app.get('/weather', (request, response, next) => {
   try {
-    let searchQuery = request.query.city;
-     let cityData = weather.find(city => city.city_name === searchQuery);
-      let servedData = cityData.data.map(foreCast => {return new Forecast(foreCast)});
-    response.status(200).send(servedData);
+    let cityName = request.query.city;
+    let lat = request.query.lat;
+    let lon = request.query.lon;
+
+     let cityData = weather.find(city => city.city_name.toLowerCase() === cityName.toLowerCase());
+      let weatherToSend = cityData.data.map(day => {return new Forecast(day)});
+    response.status(200).send(weatherToSend);
   }catch (error) {
       next(error);
   }
 });
 
 //**** CLASSES TO GROUP DATA */
-
 class Forecast {
   constructor(foreCastObj)
   {
