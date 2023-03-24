@@ -1,6 +1,5 @@
 'use strict'
 
-const { response } = require('express');
 // **********REQUIRES
 const express = require('express');
 require('dotenv').config();
@@ -22,8 +21,7 @@ app.listen(PORT, () => console.log(`We are running on port ${PORT}`));
 app.get('/', (request, response) => {
   response.status(200).send('Welcome t my server!');
 });
-
-
+                               
 app.get('/weather', async (request, response, next) => {
   try {
     let lat = request.query.lat;
@@ -34,25 +32,23 @@ app.get('/weather', async (request, response, next) => {
     let axiosUrl = await axios.get(weatherAPI);
 
     let weatherToSend = axiosUrl.data.data.map(day => { return new Forecast(day) });
+
     response.status(200).send(weatherToSend);
   } catch (error) {
     next(error);
   }
 });
-
+  
 app.get('/movies', async (request, response, next) => {
   try {
 
     let frontCity = request.query.searchQuery;
     let moviesAPI = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${frontCity}`;
-
     let axiosUrl = await axios.get(moviesAPI);
+    
+    let moviesToSend = axiosUrl.data.results.map(movie => { return new Movie(movie) });
 
-    let movieToSend = axiosUrl.data.results.map(movie => {
-      return new Movie(movie);
-    });
-    response.status(200).send(movieToSend);
-
+    response.status(200).send(moviesToSend);
   } catch (error) {
     next(error);
   }
@@ -71,7 +67,7 @@ class Forecast {
 
 class Movie {
   constructor(movieOb) {
-    this.title = movieOb.title;
+    this.title = movieOb.original_title;
     this.overview = movieOb.overview;
     this.image = `https://image.tmdb.org/t/p/w500${movieOb.poster_path}`
   }
