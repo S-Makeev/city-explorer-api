@@ -1,19 +1,42 @@
 
 const axios = require('axios');
 
+let cache = {};
+
+//TODO: create key for the data I'n going to store
+//TODO: if the thing exists AND within a valid timeframe -send that data from cache
+//TODO: fi the thing doesn't exist - call my API and cache that return from API
+
+
 
 async function getWeather(request, response, next) {
   try {
     let lat = request.query.lat;
     let lon = request.query.lon;
 
-    let weatherAPI = `http://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_API_KEY}&lat=${lat}&lon=${lon}&days=5&units=I`;
+    let key = `${lat},${lon}-Lat&Lon`; 
+    
+    if (cache[key] && (Date.now() - cache[key].timestamp) < 10000) {
+      console.log('cache was hit!')
 
-    let axiosUrl = await axios.get(weatherAPI);
+      response.status(200).send(cache[key].data)
 
-    let weatherToSend = axiosUrl.data.data.map(day => { return new Forecast(day) });
+    } else {
+      console.log('no Items in cache');
+      let weatherAPI = `http://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_API_KEY}&lat=${lat}&lon=${lon}&days=5&units=I`;
+      let axiosUrl = await axios.get(weatherAPI);
 
-    response.status(200).send(weatherToSend);
+      let weatherToSend = axiosUrl.data.data.map(day => { return new Forecast(day) });
+      //TODO: Build it into CACHE
+
+      cache[key] = {
+        data: weatherToSend,
+        timestamp: Date.now()
+      };
+
+      response.status(200).send(weatherToSend);
+    }
+
    } catch (error) {
     next(error);
   }
